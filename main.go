@@ -32,6 +32,8 @@ var lock sync.RWMutex
 var g_ret string
 var destList []string
 var doing bool
+var first bool
+var now time.Time
 
 func isDomain(domain string) bool {
 	b, _ := regexp.MatchString(`[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+.?`, domain)
@@ -43,6 +45,7 @@ func metricsFromUnixSock(unixSockFile string, metricsPath string, timeout time.D
 		Rsp: "",
 		Status: "500",
 	}
+
 	c := http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
@@ -67,6 +70,13 @@ func metricsFromUnixSock(unixSockFile string, metricsPath string, timeout time.D
 }
 
 func doWork() {
+	if first {
+		if time.Now().Unix() - now.Unix() < 60 {
+			return
+		}
+		first = false
+	}
+
 	if doing {
 		return
 	}
@@ -120,7 +130,9 @@ func main() {
 	}
 
 	doing = false
-	doWork()
+	first = true
+	now = time.Now()
+	//doWork()
 	c := cron.New()
 	c.AddFunc("0 */1 * * * ?", doWork)
 	c.Start()
