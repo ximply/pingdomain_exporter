@@ -89,7 +89,7 @@ func doWork() {
 		if strings.Compare(rsp.Status, "200") != 0 {
 			continue
 		}
-		ret = ret + rsp.Rsp + "\n"
+		ret = ret + rsp.Rsp
 	}
 
 	lock.Lock()
