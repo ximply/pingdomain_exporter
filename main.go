@@ -51,11 +51,14 @@ func metricsFromUnixSock(unixSockFile string, metricsPath string, timeout time.D
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
 				return net.Dial("unix", unixSockFile)
 			},
+			DisableKeepAlives: true,
 		},
 		Timeout: timeout,
 	}
 	res, err := c.Get(fmt.Sprintf("http://unix/%s", metricsPath))
-	defer res.Body.Close()
+	if res != nil {
+		defer res.Body.Close()
+	}
 	if err != nil {
 		return rsp
 	}
